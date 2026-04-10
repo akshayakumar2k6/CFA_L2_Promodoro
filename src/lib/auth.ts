@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
-  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "cfa-os-super-secret-jwt-key-2026-very-long-string-fallback-12345",
   session: { strategy: 'jwt' },
   pages: { signIn: '/login' },
   callbacks: {
