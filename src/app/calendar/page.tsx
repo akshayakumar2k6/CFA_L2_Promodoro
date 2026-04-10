@@ -177,11 +177,24 @@ export default function CalendarView() {
                   )}
 
                   {isCurrentMonth && dayTasks.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-0.5">
+                    <div className="mt-1 flex flex-col gap-1 w-full overflow-hidden">
                       {dayTasks.slice(0, 3).map((t, i) => (
-                        <div key={i} className={cn("w-1.5 h-1.5 rounded-full", t.isCompleted ? "bg-success" : "bg-primary/60")} />
+                        <div 
+                          key={i} 
+                          className={cn(
+                            "text-[10px] truncate px-1 py-0.5 rounded-sm border font-medium leading-none",
+                            t.isCompleted 
+                              ? "bg-success/10 text-success border-success/20" 
+                              : "bg-primary/10 text-primary border-primary/20"
+                          )}
+                          title={t.subject}
+                        >
+                          {t.subject}
+                        </div>
                       ))}
-                      {dayTasks.length > 3 && <span className="text-[10px] text-foreground/40">+{dayTasks.length - 3}</span>}
+                      {dayTasks.length > 3 && (
+                        <span className="text-[9px] font-bold text-foreground/40 text-center">+{dayTasks.length - 3} MORE</span>
+                      )}
                     </div>
                   )}
 
