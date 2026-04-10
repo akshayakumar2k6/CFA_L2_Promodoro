@@ -6,12 +6,51 @@ import { usePlannerStore } from '@/store/usePlannerStore'
 import { BookOpen, CalendarDays, ArrowRight, Zap, Loader2 } from 'lucide-react'
 
 const CFA_SUBJECTS = [
-  'Equity Investments',
-  'Fixed Income',
-  'Derivatives',
-  'Financial Statement Analysis',
-  'Economics',
-  'Portfolio Management',
+  'Basics of Multiple Regression',
+  'Evaluating Regression Model Fit and Interpreting Model Results',
+  'Model Misspecification',
+  'Extensions of Multiple Regression',
+  'Time Series Analysis',
+  'Machine Learning',
+  'Big Data Projects',
+  'Currency Exchange Rates: Understanding Equilibrium Value',
+  'Economic Growth',
+  'Intercorporate Investments',
+  'Employee Compensation: Post-Employment and Share-Base',
+  'Multinational Operations',
+  'Analysis of Financial Institutions',
+  'Evaluating Quality of Financial Reports',
+  'Integration of Financial Statement Analysis Techniques',
+  'Analysis of Dividends and Share Repurchases',
+  'ESG Considerations in Investment Analysis',
+  'Cost of Capital: Advanced Topics',
+  'Corporate Restructuring',
+  'Equity Valuation: Applications and Processes',
+  'Discounted Dividend Valuation',
+  'Free Cash Flow Valuation',
+  'Market-Based Valuation: Price and Enterprise Value Multiples',
+  'Residual Income Valuation',
+  'Private Company Valuation',
+  'The Term Structure and Interest Rate Dynamics',
+  'The Arbitrage-Free Valuation Framework',
+  'Valuation and Analysis of Bonds with Embedded Options',
+  'Credit Analysis Models',
+  'Credit Default Swaps',
+  'Pricing and Valuation of Forward Commitments',
+  'Valuation of Contingent Claims',
+  'Introduction to Commodities & Commodities Derivatives',
+  'Overviews & Types of REI',
+  'Real Estate Investments (REI) via Publicily Traded Investments',
+  'Hedge Fund Strategies (HFS)',
+  'Exchange Traded Funds: Mechanics & Applications',
+  'Using Multifactor Models',
+  'Measuring & Managing Market Risk',
+  'Backtesting & Simulation',
+  'Economics & Investment Markets',
+  'Analysis of Active Portfolio Management',
+  'Code of Ethics and Standards Professional Conduct',
+  'Guidance for Standards I-VII',
+  'Application of Code and Standards: Level II',
 ]
 
 export function OnboardingFlow() {
@@ -37,7 +76,7 @@ export function OnboardingFlow() {
     // Pre-load selected subjects as today tasks
     const today = new Date().toISOString().split('T')[0]
     for (const subject of selectedSubjects) {
-      await addTask({ date: today, subject, tag: 'Study', plannedPomodoros: 2 })
+      await addTask({ date: today, subject, tag: 'Module', plannedPomodoros: 2 })
     }
 
     completeOnboarding()
