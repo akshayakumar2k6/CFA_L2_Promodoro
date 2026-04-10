@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { StoreInitializer } from "@/components/StoreInitializer";
-import { OnboardingGate } from "@/components/OnboardingGate";
+import { AuthProvider } from "@/components/AuthProvider";
 import { fetchAppState } from "@/app/actions";
 import "./globals.css";
 
@@ -27,7 +27,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { tasks, dailyLogs, stats } = await fetchAppState()
+  const { tasks, dailyLogs, stats, settings } = await fetchAppState()
 
   return (
     <html
@@ -35,15 +35,16 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="h-full flex overflow-hidden bg-background text-foreground">
-        <StoreInitializer tasks={tasks} dailyLogs={dailyLogs} stats={stats} />
-        <OnboardingGate />
-        <Sidebar />
-        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-          <Header />
-          <main className="flex-1 overflow-y-auto bg-background p-8">
-            {children}
-          </main>
-        </div>
+        <AuthProvider>
+          <StoreInitializer tasks={tasks} dailyLogs={dailyLogs} stats={stats} settings={settings} />
+          <Sidebar />
+          <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+            <Header />
+            <main className="flex-1 overflow-y-auto bg-background p-8">
+              {children}
+            </main>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

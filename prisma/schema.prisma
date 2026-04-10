@@ -7,8 +7,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String          @id @default(cuid())
+  username      String          @unique
+  passwordHash  String
+  displayName   String?
+  createdAt     DateTime        @default(now())
+  
+  tasks         Task[]
+  sessionLogs   SessionLog[]
+  disciplineLogs DisciplineLog[]
+  stats         UserStats?
+  settings      UserSetting?
+}
+
 model Task {
   id                 String   @id @default(cuid())
+  userId             String
   date               String   // YYYY-MM-DD
   plannedTime        String?  // HH:mm
   subject            String
@@ -19,29 +34,57 @@ model Task {
   notes              String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SessionLog {
   id         String   @id @default(cuid())
+  userId     String
   startTime  DateTime
   endTime    DateTime
   durationMs Int
   type       String   // 'study' | 'break' | 'mock_exam'
   rating     Int?     // 1-5
   notes      String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model DisciplineLog {
-  date           String  @id // YYYY-MM-DD
+  id             String  @id @default(cuid())
+  userId         String
+  date           String  // YYYY-MM-DD
   studiedMinutes Int     @default(0)
   minimumMet     Boolean @default(false)
   failed         Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }
 
 model UserStats {
   id            String @id @default(cuid())
+  userId        String @unique
   xp            Int    @default(0)
   level         Int    @default(1)
   currentStreak Int    @default(0)
   longestStreak Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserSetting {
+  id                String  @id @default(cuid())
+  userId            String  @unique
+  examDate          String?
+  soundEnabled      Boolean @default(true)
+  defaultStudyMins  Int     @default(50)
+  defaultBreakMins  Int     @default(10)
+  dailyMinGoalHours Float   @default(2)
+  showXpRules       Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
