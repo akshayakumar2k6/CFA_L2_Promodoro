@@ -30,25 +30,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) return null
+        try {
+          if (!credentials?.username || !credentials?.password) return null
 
-        const user = await prisma.user.findUnique({
-          where: { username: credentials.username as string },
-        })
+          const user = await prisma.user.findUnique({
+            where: { username: credentials.username as string },
+          })
 
-        if (!user) return null
+          if (!user) return null
 
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.passwordHash
-        )
+          const isValid = await bcrypt.compare(
+            credentials.password as string,
+            user.passwordHash
+          )
 
-        if (!isValid) return null
+          if (!isValid) return null
 
-        return {
-          id: user.id,
-          name: user.displayName || user.username,
-          username: user.username,
+          return {
+            id: user.id,
+            name: user.displayName || user.username,
+            username: user.username,
+          }
+        } catch (error) {
+          console.error("Authorize DB Error:", error);
+          return null
         }
       },
     }),
