@@ -9,6 +9,19 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { cn } from '@/lib/utils'
 
 const CFA_SUBJECTS = [
+  'Ethical and Professional Standards',
+  'Quantitative Methods',
+  'Economics',
+  'Financial Statement Analysis',
+  'Corporate Issuers',
+  'Equity Investments',
+  'Fixed Income',
+  'Derivatives',
+  'Alternative Investments',
+  'Portfolio Management',
+]
+
+const CFA_MODULES = [
   'Basics of Multiple Regression',
   'Evaluating Regression Model Fit and Interpreting Model Results',
   'Model Misspecification',
@@ -56,7 +69,7 @@ const CFA_SUBJECTS = [
   'Application of Code and Standards: Level II',
 ]
 
-const TAGS = ['Module', 'Study', 'Revision', 'Question Solving', 'Mock Exams', 'Subject Mocks', 'Weekend Revision']
+const TAGS = ['Study', 'Revision', 'Question Solving', 'Mock Exams', 'Subject Mocks', 'Weekend Revision']
 
 export default function Planner() {
   const { tasks, addTask, toggleTaskCompletion, deleteTask } = usePlannerStore()
@@ -65,6 +78,7 @@ export default function Planner() {
 
   const [showAdd, setShowAdd] = useState(false)
   const [newSubject, setNewSubject] = useState(CFA_SUBJECTS[0])
+  const [newModule, setNewModule] = useState(CFA_MODULES[0])
   const [newTag, setNewTag] = useState(TAGS[0])
   const [newPomodoros, setNewPomodoros] = useState(2)
   const [newTime, setNewTime] = useState('09:00')
@@ -75,6 +89,7 @@ export default function Planner() {
       date: newDate,
       plannedTime: newTime,
       subject: newSubject,
+      module: newModule,
       tag: newTag,
       plannedPomodoros: newPomodoros
     })
@@ -131,8 +146,8 @@ export default function Planner() {
       {/* Add Task Form */}
       {showAdd && (
         <Card className="animate-in fade-in slide-in-from-top-4">
-          <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1 md:col-span-2">
+          <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Subject</label>
               <select
                 className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -140,6 +155,16 @@ export default function Planner() {
                 onChange={(e) => setNewSubject(e.target.value)}
               >
                 {CFA_SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Module</label>
+              <select
+                className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                value={newModule}
+                onChange={(e) => setNewModule(e.target.value)}
+              >
+                {CFA_MODULES.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
             <div className="space-y-1">
@@ -179,7 +204,7 @@ export default function Planner() {
                 onChange={(e) => setNewPomodoros(parseInt(e.target.value))}
               />
             </div>
-            <div className="md:col-span-3 flex space-x-3">
+            <div className="md:col-span-2 flex space-x-3">
               <Button onClick={handleAdd} className="flex-1">Save Task</Button>
               <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
             </div>
@@ -224,6 +249,9 @@ export default function Planner() {
                     <h3 className={cn("font-semibold", task.isCompleted && "line-through text-foreground/50")}>
                       {task.subject}
                     </h3>
+                    {task.module && (
+                      <p className="text-xs text-foreground/40 font-medium -mt-1">{task.module}</p>
+                    )}
                     <div className="flex items-center space-x-2 mt-1 flex-wrap gap-y-1">
                       {task.plannedTime && (
                         <span className="text-xs font-medium bg-foreground/10 text-foreground px-2 py-0.5 rounded">

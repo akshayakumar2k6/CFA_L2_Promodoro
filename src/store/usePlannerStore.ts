@@ -20,6 +20,7 @@ export interface Task {
   date: string // YYYY-MM-DD
   plannedTime?: string | null
   subject: string
+  module?: string | null
   tag: string
   plannedPomodoros: number
   completedPomodoros: number

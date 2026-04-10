@@ -56,6 +56,7 @@ export async function createTaskDB(data: any) {
         date: data.date,
         plannedTime: data.plannedTime || null,
         subject: data.subject,
+        module: data.module || null,
         tag: data.tag,
         plannedPomodoros: data.plannedPomodoros,
         completedPomodoros: 0,

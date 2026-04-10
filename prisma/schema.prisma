@@ -28,6 +28,7 @@ model Task {
   date               String   // YYYY-MM-DD
   plannedTime        String?  // HH:mm
   subject            String
+  module             String?
   tag                String
   plannedPomodoros   Int
   completedPomodoros Int      @default(0)
