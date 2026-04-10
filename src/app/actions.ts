@@ -23,7 +23,7 @@ export async function fetchAppState() {
 
   // Convert daily logs to map format used by store
   const dailyLogsMap: Record<string, any> = {}
-  dlogs.forEach(l => {
+  dlogs.forEach((l: any) => {
     dailyLogsMap[l.date] = l
   })
 
