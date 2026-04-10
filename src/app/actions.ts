@@ -5,15 +5,19 @@ import { redirect } from "next/navigation"
 
 async function getSessionUserId(): Promise<string> {
   const session = await auth()
-  if (!session?.user?.id) redirect('/login')
-  return session.user.id
+  const userId = session?.user?.id
+  if (!userId) {
+    console.error('[actions] No userId in session:', JSON.stringify(session))
+    redirect('/login')
+  }
+  return userId
 }
 
 // === FETCH ACTIONS ===
 export async function fetchAppState() {
   const session = await auth()
   if (!session?.user?.id) return { tasks: [], dailyLogs: {}, stats: null, settings: null }
-  
+
   const userId = session.user.id
 
   const [tasks, dlogs, stats, settings] = await Promise.all([
@@ -23,12 +27,13 @@ export async function fetchAppState() {
     prisma.userSetting.findUnique({ where: { userId } }),
   ])
 
-  if (!stats) {
-    await prisma.userStats.create({ data: { userId, xp: 0, level: 1, currentStreak: 0, longestStreak: 0 } })
-  }
-  if (!settings) {
-    await prisma.userSetting.create({ data: { userId } })
-  }
+  // Auto-create user defaults on first login
+  const resolvedStats = stats ?? await prisma.userStats.create({
+    data: { userId, xp: 0, level: 1, currentStreak: 0, longestStreak: 0 }
+  })
+  const resolvedSettings = settings ?? await prisma.userSetting.create({
+    data: { userId }
+  })
 
   const dailyLogsMap: Record<string, any> = {}
   dlogs.forEach((l: any) => { dailyLogsMap[l.date] = l })
@@ -36,8 +41,8 @@ export async function fetchAppState() {
   return {
     tasks,
     dailyLogs: dailyLogsMap,
-    stats: stats || { xp: 0, level: 1, currentStreak: 0, longestStreak: 0 },
-    settings: settings || { examDate: null, soundEnabled: true, defaultStudyMins: 50, defaultBreakMins: 10, dailyMinGoalHours: 2, showXpRules: true },
+    stats: resolvedStats,
+    settings: resolvedSettings,
   }
 }
 
@@ -46,18 +51,33 @@ export async function createTaskDB(data: any) {
   const userId = await getSessionUserId()
   try {
     const task = await prisma.task.create({
-      data: { userId, date: data.date, plannedTime: data.plannedTime || null, subject: data.subject, tag: data.tag, plannedPomodoros: data.plannedPomodoros, completedPomodoros: 0, isCompleted: false }
+      data: {
+        userId,
+        date: data.date,
+        plannedTime: data.plannedTime || null,
+        subject: data.subject,
+        tag: data.tag,
+        plannedPomodoros: data.plannedPomodoros,
+        completedPomodoros: 0,
+        isCompleted: false,
+      }
     })
     return { success: true, task }
-  } catch (err: any) { return { success: false, error: err.message } }
+  } catch (err: any) {
+    console.error('[createTaskDB]', err.message)
+    return { success: false, error: err.message }
+  }
 }
 
 export async function toggleTaskCompletionDB(id: string, isCompleted: boolean) {
   const userId = await getSessionUserId()
   try {
-    await prisma.task.update({ where: { id, userId }, data: { isCompleted } })
+    await prisma.task.updateMany({ where: { id, userId }, data: { isCompleted } })
     return { success: true }
-  } catch (err: any) { return { success: false, error: err.message } }
+  } catch (err: any) {
+    console.error('[toggleTaskCompletionDB]', err.message)
+    return { success: false, error: err.message }
+  }
 }
 
 export async function incrementTaskPomodoroDB(id: string, currentCompleted: number, planned: number) {
@@ -65,17 +85,26 @@ export async function incrementTaskPomodoroDB(id: string, currentCompleted: numb
   try {
     const newCompleted = currentCompleted + 1
     const isCompleted = newCompleted >= planned
-    await prisma.task.update({ where: { id, userId }, data: { completedPomodoros: newCompleted, isCompleted } })
+    await prisma.task.updateMany({
+      where: { id, userId },
+      data: { completedPomodoros: newCompleted, isCompleted }
+    })
     return { success: true, newCompleted, isCompleted }
-  } catch (err: any) { return { success: false, error: err.message } }
+  } catch (err: any) {
+    console.error('[incrementTaskPomodoroDB]', err.message)
+    return { success: false, error: err.message }
+  }
 }
 
 export async function deleteTaskDB(id: string) {
   const userId = await getSessionUserId()
   try {
-    await prisma.task.delete({ where: { id, userId } })
+    await prisma.task.deleteMany({ where: { id, userId } })
     return { success: true }
-  } catch (err: any) { return { success: false, error: err.message } }
+  } catch (err: any) {
+    console.error('[deleteTaskDB]', err.message)
+    return { success: false, error: err.message }
+  }
 }
 
 // === DISCIPLINE ACTIONS ===
@@ -88,7 +117,10 @@ export async function updateDisciplineLogDB(date: string, studiedMinutes: number
       create: { userId, date, studiedMinutes, minimumMet, failed: false }
     })
     return { success: true, log }
-  } catch (err: any) { return { success: false, error: err.message } }
+  } catch (err: any) {
+    console.error('[updateDisciplineLogDB]', err.message)
+    return { success: false, error: err.message }
+  }
 }
 
 export async function setPenaltyDB(date: string) {
@@ -100,7 +132,10 @@ export async function setPenaltyDB(date: string) {
       create: { userId, date, failed: true, minimumMet: false, studiedMinutes: 0 }
     })
     return { success: true, log }
-  } catch (err: any) { return { success: false, error: err.message } }
+  } catch (err: any) {
+    console.error('[setPenaltyDB]', err.message)
+    return { success: false, error: err.message }
+  }
 }
 
 // === GAMIFICATION ACTIONS ===
@@ -113,17 +148,30 @@ export async function updateStatsDB(data: { xp?: number, level?: number, current
       create: { userId, xp: 0, level: 1, currentStreak: 0, longestStreak: 0, ...data }
     })
     return { success: true, stats }
-  } catch (err: any) { return { success: false, error: err.message } }
+  } catch (err: any) {
+    console.error('[updateStatsDB]', err.message)
+    return { success: false, error: err.message }
+  }
 }
 
 export async function logSessionDB(data: any) {
   const userId = await getSessionUserId()
   try {
     const session = await prisma.sessionLog.create({
-      data: { userId, startTime: data.startTime, endTime: data.endTime, durationMs: data.durationMs, type: data.type, rating: data.rating }
+      data: {
+        userId,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        durationMs: data.durationMs,
+        type: data.type,
+        rating: data.rating
+      }
     })
     return { success: true, session }
-  } catch (err: any) { return { success: false, error: err.message } }
+  } catch (err: any) {
+    console.error('[logSessionDB]', err.message)
+    return { success: false, error: err.message }
+  }
 }
 
 // === SETTINGS ACTIONS ===
@@ -136,7 +184,10 @@ export async function updateSettingsDB(data: any) {
       create: { userId, ...data }
     })
     return { success: true, settings }
-  } catch (err: any) { return { success: false, error: err.message } }
+  } catch (err: any) {
+    console.error('[updateSettingsDB]', err.message)
+    return { success: false, error: err.message }
+  }
 }
 
 // === PUBLIC SHARE SNAPSHOT ===
@@ -150,13 +201,13 @@ export async function getUserShareSnapshot(username: string) {
     }
   })
   if (!user) return null
-  
-  const totalStudiedMin = user.disciplineLogs.reduce((a, l) => a + l.studiedMinutes, 0)
+
+  const totalStudiedMin = user.disciplineLogs.reduce((a: number, l: any) => a + l.studiedMinutes, 0)
   const streakDays = user.stats?.currentStreak || 0
   const level = user.stats?.level || 1
   const xp = user.stats?.xp || 0
   const completedTasks = user.tasks.length
-  
+
   return {
     displayName: user.displayName || user.username,
     username: user.username,
