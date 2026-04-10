@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { StoreInitializer } from "@/components/StoreInitializer";
+import { OnboardingGate } from "@/components/OnboardingGate";
 import { fetchAppState } from "@/app/actions";
 import "./globals.css";
 
@@ -17,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pomodoro OS",
-  description: "CFA Level 2 Productivity Engine",
+  title: "CFA OS — Level 2 Study System",
+  description: "A discipline-driven Pomodoro study operating system for CFA Level 2 preparation. Track sessions, XP, streaks, and analytics.",
 };
 
 export default async function RootLayout({
@@ -26,7 +27,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Fetch initial global state from PostgreSQL DB
   const { tasks, dailyLogs, stats } = await fetchAppState()
 
   return (
@@ -36,6 +36,7 @@ export default async function RootLayout({
     >
       <body className="h-full flex overflow-hidden bg-background text-foreground">
         <StoreInitializer tasks={tasks} dailyLogs={dailyLogs} stats={stats} />
+        <OnboardingGate />
         <Sidebar />
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
           <Header />
@@ -47,3 +48,4 @@ export default async function RootLayout({
     </html>
   );
 }
+

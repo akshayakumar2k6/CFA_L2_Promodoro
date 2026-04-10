@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { createTaskDB, toggleTaskCompletionDB, incrementTaskPomodoroDB } from '@/app/actions'
+import { createTaskDB, toggleTaskCompletionDB, incrementTaskPomodoroDB, deleteTaskDB } from '@/app/actions'
 
 export type CFASubject = 
   | 'Ethical and Professional Standards'
@@ -34,7 +34,7 @@ export interface PlannerState {
   setTasks: (tasks: Task[]) => void
   addTask: (task: Omit<Task, 'id' | 'completedPomodoros' | 'isCompleted'>) => Promise<void>
   updateTask: (id: string, updates: Partial<Task>) => void
-  deleteTask: (id: string) => void
+  deleteTask: (id: string) => Promise<void>
   incrementTaskPomodoro: (id: string) => Promise<void>
   toggleTaskCompletion: (id: string) => Promise<void>
 }
@@ -58,9 +58,10 @@ export const usePlannerStore = create<PlannerState>()((set, get) => ({
     tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t))
   })),
 
-  deleteTask: (id) => set((state) => ({
-    tasks: state.tasks.filter((t) => t.id !== id)
-  })),
+  deleteTask: async (id) => {
+    set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) }))
+    await deleteTaskDB(id)
+  },
 
   incrementTaskPomodoro: async (id) => {
     const task = get().tasks.find(t => t.id === id)

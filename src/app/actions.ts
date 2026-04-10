@@ -83,6 +83,15 @@ export async function incrementTaskPomodoroDB(id: string, currentCompleted: numb
   }
 }
 
+export async function deleteTaskDB(id: string) {
+  try {
+    await prisma.task.delete({ where: { id } })
+    return { success: true }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+}
+
 // === DISCIPLINE ACTIONS ===
 export async function updateDisciplineLogDB(date: string, studiedMinutes: number, minimumMet: boolean) {
   try {
