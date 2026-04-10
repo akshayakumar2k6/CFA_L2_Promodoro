@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
+import { StoreInitializer } from "@/components/StoreInitializer";
+import { fetchAppState } from "@/app/actions";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,17 +21,21 @@ export const metadata: Metadata = {
   description: "CFA Level 2 Productivity Engine",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch initial global state from PostgreSQL DB
+  const { tasks, dailyLogs, stats } = await fetchAppState()
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="h-full flex overflow-hidden bg-background text-foreground">
+        <StoreInitializer tasks={tasks} dailyLogs={dailyLogs} stats={stats} />
         <Sidebar />
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
           <Header />

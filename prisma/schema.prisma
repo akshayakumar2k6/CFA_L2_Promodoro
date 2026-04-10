@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Task {
+  id                 String   @id @default(cuid())
+  date               String   // YYYY-MM-DD
+  plannedTime        String?  // HH:mm
+  subject            String
+  tag                String
+  plannedPomodoros   Int
+  completedPomodoros Int      @default(0)
+  isCompleted        Boolean  @default(false)
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model SessionLog {
+  id         String   @id @default(cuid())
+  startTime  DateTime
+  endTime    DateTime
+  durationMs Int
+  type       String   // 'study' | 'break' | 'mock_exam'
+  rating     Int?     // 1-5
+  notes      String?
+}
+
+model DisciplineLog {
+  date           String  @id // YYYY-MM-DD
+  studiedMinutes Int     @default(0)
+  minimumMet     Boolean @default(false)
+  failed         Boolean @default(false)
+}
+
+model UserStats {
+  id            String @id @default(cuid())
+  xp            Int    @default(0)
+  level         Int    @default(1)
+  currentStreak Int    @default(0)
+  longestStreak Int    @default(0)
+}

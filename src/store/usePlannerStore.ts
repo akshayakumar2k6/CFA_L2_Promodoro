@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createTaskDB, toggleTaskCompletionDB, incrementTaskPomodoroDB } from '@/app/actions'
 
 export type CFASubject = 
   | 'Ethical and Professional Standards'
@@ -18,70 +18,74 @@ export type StudyTag = 'Study' | 'Revision' | 'Question Solving' | 'Mock Exams' 
 export interface Task {
   id: string
   date: string // YYYY-MM-DD
-  subject: CFASubject
-  tag: StudyTag
+  plannedTime?: string | null
+  subject: string
+  tag: string
   plannedPomodoros: number
   completedPomodoros: number
   isCompleted: boolean
-  notes?: string
+  notes?: string | null
 }
 
 export interface PlannerState {
   tasks: Task[]
   
   // Actions
-  addTask: (task: Omit<Task, 'id' | 'completedPomodoros' | 'isCompleted'>) => void
+  setTasks: (tasks: Task[]) => void
+  addTask: (task: Omit<Task, 'id' | 'completedPomodoros' | 'isCompleted'>) => Promise<void>
   updateTask: (id: string, updates: Partial<Task>) => void
   deleteTask: (id: string) => void
-  incrementTaskPomodoro: (id: string) => void
-  toggleTaskCompletion: (id: string) => void
+  incrementTaskPomodoro: (id: string) => Promise<void>
+  toggleTaskCompletion: (id: string) => Promise<void>
 }
 
-export const usePlannerStore = create<PlannerState>()(
-  persist(
-    (set) => ({
-      tasks: [],
+export const usePlannerStore = create<PlannerState>()((set, get) => ({
+  tasks: [],
 
-      addTask: (task) => set((state) => ({
-        tasks: [
-          ...state.tasks,
-          {
-            ...task,
-            id: Date.now().toString(),
-            completedPomodoros: 0,
-            isCompleted: false
-          }
-        ]
-      })),
+  setTasks: (tasks) => set({ tasks }),
 
-      updateTask: (id, updates) => set((state) => ({
-        tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t))
-      })),
-
-      deleteTask: (id) => set((state) => ({
-        tasks: state.tasks.filter((t) => t.id !== id)
-      })),
-
-      incrementTaskPomodoro: (id) => set((state) => ({
-        tasks: state.tasks.map((t) => {
-          if (t.id === id) {
-            const completed = t.completedPomodoros + 1
-            return {
-              ...t,
-              completedPomodoros: completed,
-              isCompleted: completed >= t.plannedPomodoros ? true : t.isCompleted
-            }
-          }
-          return t
-        })
-      })),
-
-      toggleTaskCompletion: (id) => set((state) => ({
-        tasks: state.tasks.map((t) => (t.id === id ? { ...t, isCompleted: !t.isCompleted } : t))
+  addTask: async (task) => {
+    // Optimistic update omitted for simplicity, fetching exact DB object
+    const res = await createTaskDB(task)
+    if (res.success && res.task) {
+      set((state) => ({
+        tasks: [...state.tasks, res.task as Task]
       }))
-    }),
-    {
-      name: 'planner-storage',
     }
-  )
-)
+  },
+
+  updateTask: (id, updates) => set((state) => ({
+    tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t))
+  })),
+
+  deleteTask: (id) => set((state) => ({
+    tasks: state.tasks.filter((t) => t.id !== id)
+  })),
+
+  incrementTaskPomodoro: async (id) => {
+    const task = get().tasks.find(t => t.id === id)
+    if (!task) return
+    
+    // Optimistic
+    const newCompleted = task.completedPomodoros + 1
+    const isCompleted = newCompleted >= task.plannedPomodoros ? true : task.isCompleted
+    
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t.id === id ? { ...t, completedPomodoros: newCompleted, isCompleted } : t))
+    }))
+
+    await incrementTaskPomodoroDB(id, task.completedPomodoros, task.plannedPomodoros)
+  },
+
+  toggleTaskCompletion: async (id) => {
+    const task = get().tasks.find(t => t.id === id)
+    if (!task) return
+
+    // Optimistic
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t.id === id ? { ...t, isCompleted: !t.isCompleted } : t))
+    }))
+
+    await toggleTaskCompletionDB(id, !task.isCompleted)
+  }
+}))

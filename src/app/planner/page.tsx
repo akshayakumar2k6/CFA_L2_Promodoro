@@ -21,10 +21,12 @@ export default function Planner() {
   const [newSubject, setNewSubject] = useState<CFASubject>(SUBJECTS[0])
   const [newTag, setNewTag] = useState<StudyTag>(TAGS[0])
   const [newPomodoros, setNewPomodoros] = useState(2)
+  const [newTime, setNewTime] = useState("09:00")
 
   const handleAdd = () => {
     addTask({
       date: new Date().toISOString().split('T')[0],
+      plannedTime: newTime,
       subject: newSubject,
       tag: newTag,
       plannedPomodoros: newPomodoros
@@ -51,7 +53,7 @@ export default function Planner() {
 
       {showAdd && (
         <Card className="animate-in fade-in slide-in-from-top-4">
-          <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <div className="space-y-2 flex flex-col">
               <label className="text-sm font-medium">Subject</label>
               <select 
@@ -73,7 +75,16 @@ export default function Planner() {
               </select>
             </div>
             <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-medium">Planned Pomodoros</label>
+              <label className="text-sm font-medium">Time</label>
+              <input 
+                type="time" 
+                className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                value={newTime}
+                onChange={(e) => setNewTime(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2 flex flex-col">
+              <label className="text-sm font-medium">Pomodoros</label>
               <input 
                 type="number" 
                 min="1" max="10"
@@ -120,6 +131,11 @@ export default function Planner() {
                       {task.subject}
                     </h3>
                     <div className="flex items-center space-x-2 mt-1">
+                      {task.plannedTime && (
+                        <span className="text-xs font-medium bg-foreground/10 text-foreground px-2 py-0.5 rounded">
+                          {task.plannedTime}
+                        </span>
+                      )}
                       <span className="text-xs font-medium bg-secondary text-secondary-foreground px-2 py-0.5 rounded">
                         {task.tag}
                       </span>

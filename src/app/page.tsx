@@ -21,6 +21,7 @@ export default function FocusHub() {
 
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [rating, setRating] = useState(0)
+  const [selectedTaskId, setSelectedTaskId] = useState<string>('')
 
   // Timer Tick
   useEffect(() => {
@@ -43,12 +44,15 @@ export default function FocusHub() {
   }
 
   const handleComplete = () => {
-    // If study phase, add time to discipline store
     if (currentPhase === 'study') {
       const isWeekend = new Date().getDay() === 0 || new Date().getDay() === 6
-      const mins = 50 // We should read from store but sticking to default for now
+      const mins = studyDuration
       addStudyTime(new Date().toISOString().split('T')[0], mins, isWeekend)
-      addXp(rating === 5 ? 150 : rating >= 3 ? 100 : 50) // Bonus for good rating
+      addXp(rating === 5 ? 150 : rating >= 3 ? 100 : 50) 
+      
+      if (selectedTaskId) {
+        incrementTaskPomodoro(selectedTaskId)
+      }
     }
     
     completeSession(rating, "Session completed")
@@ -61,7 +65,7 @@ export default function FocusHub() {
   const totalTimeSeconds = (currentPhase === 'study' ? studyDuration : breakDuration) * 60
   const progressPercent = ((totalTimeSeconds - timeLeft) / totalTimeSeconds) * 100
   const strokeDashoffset = circumference - (progressPercent / 100) * circumference
-  const { tasks } = usePlannerStore()
+  const { tasks, incrementTaskPomodoro } = usePlannerStore()
   const todayDate = new Date().toISOString().split('T')[0]
   const todayTasks = tasks.filter(t => t.date === todayDate)
 
@@ -73,24 +77,39 @@ export default function FocusHub() {
           <p className="text-foreground/60 mt-2">Execute your daily plan with strict discipline.</p>
         </div>
         {!isRunning && (
-          <div className="flex items-center space-x-4">
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-foreground/60">Study (min)</label>
-              <input 
-                type="number" min="1" max="180" 
-                value={studyDuration} 
-                onChange={(e) => setStudyDuration(Number(e.target.value))} 
-                className="w-16 h-8 bg-background border border-border rounded px-2 text-sm text-center focus:outline-none focus:border-primary"
-              />
+          <div className="flex flex-col space-y-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex flex-col">
+                <label className="text-xs font-medium text-foreground/60">Study (min)</label>
+                <input 
+                  type="number" min="1" max="180" 
+                  value={studyDuration} 
+                  onChange={(e) => setStudyDuration(Number(e.target.value))} 
+                  className="w-16 h-8 bg-background border border-border rounded px-2 text-sm text-center focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs font-medium text-foreground/60">Break (min)</label>
+                <input 
+                  type="number" min="1" max="60" 
+                  value={breakDuration} 
+                  onChange={(e) => setBreakDuration(Number(e.target.value))} 
+                  className="w-16 h-8 bg-background border border-border rounded px-2 text-sm text-center focus:outline-none focus:border-primary"
+                />
+              </div>
             </div>
             <div className="flex flex-col">
-              <label className="text-xs font-medium text-foreground/60">Break (min)</label>
-              <input 
-                type="number" min="1" max="60" 
-                value={breakDuration} 
-                onChange={(e) => setBreakDuration(Number(e.target.value))} 
-                className="w-16 h-8 bg-background border border-border rounded px-2 text-sm text-center focus:outline-none focus:border-primary"
-              />
+              <label className="text-xs font-medium text-foreground/60">Active Task</label>
+              <select 
+                className="h-8 max-w-[200px] bg-background border border-border rounded px-2 text-sm focus:outline-none focus:border-primary"
+                value={selectedTaskId}
+                onChange={(e) => setSelectedTaskId(e.target.value)}
+              >
+                <option value="">-- No Task Selected --</option>
+                {todayTasks.filter(t => !t.isCompleted).map(t => (
+                  <option key={t.id} value={t.id}>{t.subject} ({t.tag})</option>
+                ))}
+              </select>
             </div>
           </div>
         )}

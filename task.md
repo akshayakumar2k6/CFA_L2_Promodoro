@@ -1,15 +1,9 @@
-# Task List
+# V3 Task List (Online Platform)
 
-- `[x]` Setup Next.js Project with Tailwind CSS & TypeScript.
-- `[x]` Install necessary dependencies (`zustand`, `recharts`, `lucide-react`, `date-fns`, `clsx`, `tailwind-merge`).
-- `[x]` Configure Tailwind for Dark Mode.
-- `[/]` Create basic UI components (Buttons, Cards, Inputs).
-- `[x]` Setup Zustand Stores (`usePomodoroStore`, `useDisciplineStore`, `usePlannerStore`, `useGamificationStore`).
-- `[x]` Implement Main Layout (`Sidebar`, `Header`).
-- `[x]` Implement Focus Hub (Pomodoro Timer & End Session Rating).
-- `[x]` Implement Strategic Planner (CFA subjects, Tags, Daily Tasks).
-- `[x]` Implement Discipline Engine (Daily minimums, Streaks, Penalties).
-- `[x]` Implement Analytics Dashboard (Charts, Efficiency Score, Focus Score, On-Track label).
-- `[x]` Implement Discipline Calendar.
-- `[x]` Add sounds/gamification aspects.
-- `[x]` Verify everything works correctly and fix any UI/UX issues.
+- `[x]` Restructure `src/app/actions.ts` into individual atomic CRUD Server Actions mapping accurately to `useDisciplineStore`, `useGamificationStore`, and `usePlannerStore`.
+- `[x]` Update all global Zustand stores to remove `persist` middleware entirely.
+- `[x]` Wrap Zustand store functions computationally around Prisma DB mutations to await Cloud sync before optimizing UI (or use optimistic rendering).
+- `[x]` Fetch global state via Database directly in `src/app/layout.tsx`.
+- `[x]` Create `<StoreInitializer />` client component.
+- `[x]` Validate app load successfully hydrates local memory stores natively on startup.
+- `[x]` Remove deprecated "Sync Cloud" header button.
